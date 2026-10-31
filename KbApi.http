@@ -1,0 +1,6 @@
+@KbApi_HostAddress = http://localhost:5299
+
+GET {{KbApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
