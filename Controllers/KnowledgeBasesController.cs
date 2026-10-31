@@ -1,21 +1,26 @@
 using KbApi.Dtos;
-using KbApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using KbApi.Services;
 
 namespace KbApi.Controllers;
 
+
 [ApiController]
 [Route("api/knowledge-bases")]
+
 public class KnowledgeBasesController : ControllerBase
 {
-    // 暂时用内存列表当数据库，static 保证每次请求共用同一份数据
-    private static readonly List<KnowledgeBase> _store = new();
+    public KnowledgeBasesController(IKnowledgeBaseService service)
+    {
+        _service = service;
+    }
 
+    private readonly IKnowledgeBaseService _service;
     // GET api/knowledge-bases
     [HttpGet]
     public ActionResult<IEnumerable<KnowledgeBaseDto>> GetAll()
     {
-        var result = _store.Select(kb => new KnowledgeBaseDto(kb.Id, kb.Name, kb.Description, kb.CreatedAt));
+        var result = _service.GetAll();
         return Ok(result);
     }
 
@@ -23,45 +28,27 @@ public class KnowledgeBasesController : ControllerBase
     [HttpGet("{id:guid}")]
     public ActionResult<KnowledgeBaseDto> GetById(Guid id)
     {
-        var kb = _store.FirstOrDefault(x => x.Id == id);
-        if (kb is null) return NotFound();
-        return Ok(new KnowledgeBaseDto(kb.Id, kb.Name, kb.Description, kb.CreatedAt));
+        var dto = _service.GetById(id);
+        if (dto is null) return NotFound();
+        return dto;
     }
 
     [HttpPost]
     public ActionResult<KnowledgeBaseDto> Create(CreateKnowledgeBaseDto row)
     {
-        var kb = new KnowledgeBase
-        {
-            Name = row.Name,
-            Description = row.Description
-        };
-
-        // 存进内存
-        _store.Add(kb);
-
-        var dto = new KnowledgeBaseDto(kb.Id, kb.Name, kb.Description, kb.CreatedAt);
-        return CreatedAtAction(nameof(GetById), new { id = kb.Id }, dto);
-        //return Ok(dto);
+        var dto = _service.Create(row);
+        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
     }
 
-    [HttpPost("{id:guid}")]
+    [HttpPut("{id:guid}")]
     public IActionResult Update(Guid id, UpdateKnowledgeBaseDto input)
     {
-        var kb = _store.FirstOrDefault(x => x.Id == id);
-        if (kb is null) return NotFound();
-        kb.Name = input.Name;
-        kb.Description = input.Description;
-        return NoContent();
+        return _service.Update(id, input) ? NoContent() : NotFound();
     }
 
     [HttpDelete("{id:guid}")]
     public IActionResult Delete(Guid id)
     {
-        var kb = _store.FirstOrDefault(x => x.Id == id);
-        if(kb is null) return NotFound();
-        _store.Remove(kb);
-
-        return Ok();
+        return _service.Delete(id) ? NoContent() : NotFound();
     }
 }

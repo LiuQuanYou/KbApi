@@ -10,13 +10,13 @@ public static class KnowledgeBaseRules
 
 // 创建时前端传的数据
 public record CreateKnowledgeBaseDto(
-    [property: Required, MaxLength(KnowledgeBaseRules.NameMaxLength)] string Name,
-    [property: MaxLength(KnowledgeBaseRules.DescriptionMaxLength)] string? Description
+    [Required, MaxLength(KnowledgeBaseRules.NameMaxLength)] string Name,
+    [MaxLength(KnowledgeBaseRules.DescriptionMaxLength)] string? Description
 );
 // 更新时前端传的数据
 public record UpdateKnowledgeBaseDto(
-    [property: Required, MaxLength(KnowledgeBaseRules.NameMaxLength)] string Name,
-    [property: MaxLength(KnowledgeBaseRules.DescriptionMaxLength)] string? Description
+    [Required, MaxLength(KnowledgeBaseRules.NameMaxLength)] string Name,
+    [MaxLength(KnowledgeBaseRules.DescriptionMaxLength)] string? Description
 );
 // 返回给前端的数据
 public record KnowledgeBaseDto(
