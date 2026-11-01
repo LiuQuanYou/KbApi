@@ -16,7 +16,6 @@ public class KnowledgeBaseService : IKnowledgeBaseService
         var kb = _store.FirstOrDefault(x => x.Id == id);
         return kb is null ? null : ToDto(kb);
     }
-    // Create、Update、Delete 你来补
     public KnowledgeBaseDto Create(CreateKnowledgeBaseDto input)
     {
         var kb = new KnowledgeBase

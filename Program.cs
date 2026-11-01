@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 //注册 ProblemDetails 服务。
 builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<IKnowledgeBaseService, KnowledgeBaseService>();
+builder.Services.AddSingleton<IDocumentService, DocumentService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
