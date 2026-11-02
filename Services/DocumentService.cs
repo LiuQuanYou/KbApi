@@ -1,61 +1,79 @@
+using KbApi.Data;
 using KbApi.Dtos;
 using KbApi.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace KbApi.Services;
 
 public class DocumentService : IDocumentService
 {
-    private readonly List<Document> _store = new();
-    private readonly IKnowledgeBaseService _kbService;
+    private readonly AppDbContext _db;
 
-    public DocumentService(IKnowledgeBaseService kbService)
+    public DocumentService(AppDbContext db)
     {
-        _kbService = kbService;
+        _db = db;
     }
 
-    private static DocumentDto ToDto(Document d) =>
-    new(d.Id, d.KnowledgeBaseId, d.Title, d.Content, d.CreatedAt);
+    private static DocumentDto ToDto(Document document) =>
+        new(document.Id, document.KnowledgeBaseId, document.Title, document.Content, document.CreatedAt);
 
-    private bool KbExists(Guid kbId) => _kbService.GetById(kbId) is not null;
-
-    public IEnumerable<DocumentDto>? GetAll(Guid kbId)
+    public async Task<IEnumerable<DocumentDto>?> GetAll(Guid kbId)
     {
-        // 1. 知识库不存在，返回 null，让 Controller 回 404
-        if (!KbExists(kbId)) return null;
+        var knowledgeBaseExists = await _db.KnowledgeBases
+            .AnyAsync(x => x.Id == kbId);
 
-        // 2. 筛出属于这个知识库的文档，再转成 DTO
-        return _store
+        if (!knowledgeBaseExists) return null;
+
+        return await _db.Documents
+            .AsNoTracking()
             .Where(x => x.KnowledgeBaseId == kbId)
-            .Select(ToDto);
+            .Select(x => new DocumentDto(
+                x.Id,
+                x.KnowledgeBaseId,
+                x.Title,
+                x.Content,
+                x.CreatedAt))
+            .ToListAsync();
     }
 
-    public DocumentDto? GetById(Guid kbId, Guid id)
+    public async Task<DocumentDto?> GetById(Guid kbId, Guid id)
     {
-        if (!KbExists(kbId)) return null;
+        var document = await _db.Documents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.KnowledgeBaseId == kbId && x.Id == id);
 
-        var d = _store.FirstOrDefault(x => x.KnowledgeBaseId == kbId && x.Id == id);
-        return d is null ? null : ToDto(d);
+        return document is null ? null : ToDto(document);
     }
 
-    public DocumentDto? Create(Guid kbId, CreateDocumentDto input)
+    public async Task<DocumentDto?> Create(Guid kbId, CreateDocumentDto input)
     {
-        if (!KbExists(kbId)) return null;
+        var knowledgeBaseExists = await _db.KnowledgeBases
+            .AnyAsync(x => x.Id == kbId);
 
-        var d = new Document
+        if (!knowledgeBaseExists) return null;
+
+        var document = new Document
         {
             Title = input.Title,
             Content = input.Content,
             KnowledgeBaseId = kbId
         };
 
-        _store.Add(d);
-        return ToDto(d);
+        _db.Documents.Add(document);
+        await _db.SaveChangesAsync();
+
+        return ToDto(document);
     }
 
-    public bool Delete(Guid kbId, Guid id)
+    public async Task<bool> Delete(Guid kbId, Guid id)
     {
-        var d = _store.FirstOrDefault(x => x.KnowledgeBaseId == kbId && x.Id == id);
-         if (!KbExists(kbId) || d is null) return false;
-         _store.Remove(d);
-         return true;
+        var document = await _db.Documents
+            .FirstOrDefaultAsync(x => x.KnowledgeBaseId == kbId && x.Id == id);
+
+        if (document is null) return false;
+
+        _db.Documents.Remove(document);
+        await _db.SaveChangesAsync();
+        return true;
     }
 }

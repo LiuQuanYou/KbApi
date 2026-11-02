@@ -1,3 +1,5 @@
+using KbApi.Data;
+using Microsoft.EntityFrameworkCore;
 using KbApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,8 +9,10 @@ builder.Services.AddControllers();
 
 //注册 ProblemDetails 服务。
 builder.Services.AddProblemDetails();
-builder.Services.AddSingleton<IKnowledgeBaseService, KnowledgeBaseService>();
-builder.Services.AddSingleton<IDocumentService, DocumentService>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

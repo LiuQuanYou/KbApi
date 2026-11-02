@@ -18,37 +18,38 @@ public class KnowledgeBasesController : ControllerBase
     private readonly IKnowledgeBaseService _service;
     // GET api/knowledge-bases
     [HttpGet]
-    public ActionResult<IEnumerable<KnowledgeBaseDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<KnowledgeBaseDto>>> GetAll()
     {
-        var result = _service.GetAll();
+        var result = await _service.GetAll();
+        if (result is null) return NotFound();
         return Ok(result);
     }
 
     // GET api/knowledge-bases/{id}
     [HttpGet("{id:guid}")]
-    public ActionResult<KnowledgeBaseDto> GetById(Guid id)
+    public async Task<ActionResult<KnowledgeBaseDto>> GetById(Guid id)
     {
-        var dto = _service.GetById(id);
+        var dto = await _service.GetById(id);
         if (dto is null) return NotFound();
         return dto;
     }
 
     [HttpPost]
-    public ActionResult<KnowledgeBaseDto> Create(CreateKnowledgeBaseDto row)
+    public async Task<ActionResult<KnowledgeBaseDto>> Create(CreateKnowledgeBaseDto row)
     {
-        var dto = _service.Create(row);
+        var dto = await _service.Create(row);
         return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
     }
 
     [HttpPut("{id:guid}")]
-    public IActionResult Update(Guid id, UpdateKnowledgeBaseDto input)
+    public async Task<IActionResult> Update(Guid id, UpdateKnowledgeBaseDto input)
     {
-        return _service.Update(id, input) ? NoContent() : NotFound();
+        return await _service.Update(id, input) ? NoContent() : NotFound();
     }
 
     [HttpDelete("{id:guid}")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        return _service.Delete(id) ? NoContent() : NotFound();
+        return await _service.Delete(id) ? NoContent() : NotFound();
     }
 }

@@ -3,9 +3,9 @@ namespace KbApi.Services;
 
 public interface IKnowledgeBaseService
 {
-    IEnumerable<KnowledgeBaseDto> GetAll();
-    KnowledgeBaseDto? GetById(Guid id);
-    KnowledgeBaseDto Create(CreateKnowledgeBaseDto input);
-    bool Update(Guid id, UpdateKnowledgeBaseDto input);
-    bool Delete(Guid id);
+    Task<List<KnowledgeBaseDto>> GetAll();
+    Task<KnowledgeBaseDto?> GetById(Guid id);
+    Task<KnowledgeBaseDto> Create(CreateKnowledgeBaseDto input);
+    Task<bool> Update(Guid id, UpdateKnowledgeBaseDto input);
+    Task<bool> Delete(Guid id);
 }
